@@ -11,6 +11,7 @@ set(TS_FILES
     qlcplus_pl_PL.ts
     qlcplus_ru_RU.ts
     qlcplus_uk_UA.ts
+    qlcplus_zh_CN.ts
 )
 qt_add_translation(QM_FILES ${TS_FILES})
 

@@ -696,6 +696,14 @@ Popup
                         entryText: qsTr("Ukrainian")
                         onClicked: setLanguage("uk_UA")
                     }
+                    ContextMenuEntry
+                    {
+                        Layout.fillWidth: true
+                        imgSource: "qrc:/flag_cn.svg"
+                        iconWidth: flagSize
+                        entryText: qsTr("Chinese")
+                        onClicked: setLanguage("zh_CN")
+                    }
                 }
             }
         }

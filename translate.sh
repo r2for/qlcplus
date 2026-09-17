@@ -60,7 +60,7 @@ LUPDATE="$(which_qt lupdate)" || {
 
 ACTION="${1:-}"
 UI_LANGS="de_DE es_ES fr_FR it_IT nl_NL cz_CZ pt_BR ca_ES ja_JP"
-QMLUI_LANGS="de_DE es_ES fr_FR it_IT nl_NL ru_RU ca_ES ja_JP uk_UA pl_PL"
+QMLUI_LANGS="de_DE es_ES fr_FR it_IT nl_NL ru_RU ca_ES ja_JP uk_UA pl_PL zh_CN"
 
 die() { echo "Error: $*" >&2; exit 1; }
 usage() {
