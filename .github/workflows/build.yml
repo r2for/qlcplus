@@ -170,6 +170,12 @@ jobs:
           file: coverage/coverage.info
           format: lcov
 
+      - name: Generate translations (v5)
+        if: ${{ matrix.task == 'build-v5' }}
+        run: |
+          export PATH="$QTDIR/bin:$PATH"
+          ./translate.sh release qmlui
+
       - name: Install
         if: ${{ ! startsWith( matrix.task, 'coverage') }}
         run: |
@@ -556,6 +562,13 @@ jobs:
           sed -i '' "s/\(#define APPVERSION \".*\)\"/\1 ${{env.GIT_REV}}\"/" engine/src/qlcconfig.h
           cd build
           make -j${{ env.NPROC }}
+
+      - name: Generate translations (v5)
+        shell: bash
+        if: ${{ matrix.task == 'build-v5' }}
+        run: |-
+          export PATH="${{ env.QTDIR }}/bin:$PATH"
+          ./translate.sh release qmlui
 
       - name: Install
         shell: bash
