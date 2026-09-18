@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-22.04
     name: QLCplus Linux ${{matrix.task}}
     strategy:
-      #fail-fast: false
+      fail-fast: false
       matrix:
         task: [build-v4, build-v5, coverage-build-v4]
     env:
@@ -94,11 +94,10 @@ jobs:
           echo "QT: ${QT}"
           echo "NPROC: ${NPROC}"
 
-      - name: Download, cache and install packages
-        uses: awalsh128/cache-apt-pkgs-action@v1.6.3
-        with:
-          packages: ${{env.PACKAGES_ALL}}
-          version: ${{runner.os}}-apt
+      - name: Install packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ${{env.PACKAGES_ALL}}
 
       - name: Install Qt through aqt (and python)
         uses: jurplel/install-qt-action@v4
