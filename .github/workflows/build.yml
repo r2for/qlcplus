@@ -1,4 +1,4 @@
-name: QLCplus Github Actions CI Build
+﻿name: QLCplus Github Actions CI Build
 
 on: ["push", "pull_request"]
 
@@ -151,7 +151,6 @@ jobs:
 
       - name: Build
         run: |
-          sed -i "s/\(#define APPVERSION \".*\)\"/\1 ${{env.GIT_REV}}\"/" engine/src/qlcconfig.h
           cmake --build build --parallel `nproc`
 
       - name: Test
@@ -406,7 +405,6 @@ jobs:
       - name: Build for Windows
         shell: msys2 {0}
         run: |
-          sed -i "s/\(#define APPVERSION \".*\)\"/\1 ${{env.GIT_REV}}\"/" engine/src/qlcconfig.h
           cd build
           ninja
 
@@ -559,7 +557,6 @@ jobs:
       - name: Build
         shell: bash
         run: |-
-          sed -i '' "s/\(#define APPVERSION \".*\)\"/\1 ${{env.GIT_REV}}\"/" engine/src/qlcconfig.h
           cd build
           make -j${{ env.NPROC }}
 
