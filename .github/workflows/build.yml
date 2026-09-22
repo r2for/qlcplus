@@ -454,12 +454,24 @@ jobs:
           path: ${{matrix.task}}-${{env.OUTFILE}}
 
   build-macos:
-    runs-on: macos-15
-    name: QLCplus macOS ${{matrix.task}}
+    runs-on: ${{ matrix.runs_on }}
+    name: QLCplus macOS ${{matrix.task}} (${{matrix.arch}})
     strategy:
       fail-fast: false
       matrix:
-        task: [build-v4, build-v5]
+        include:
+          - task: build-v4
+            arch: x86_64
+            qt_arch: clang_64
+            runs_on: macos-15
+          - task: build-v5
+            arch: x86_64
+            qt_arch: clang_64
+            runs_on: macos-15
+          - task: build-v5
+            arch: arm64
+            qt_arch: clang_64_arm64
+            runs_on: macos-15-arm64
     env:
       CI_REPO_SLUG: ${{ github.repository }}
       CI_BRANCH: ${{ github.head_ref }}
@@ -485,7 +497,11 @@ jobs:
         run: |
           echo "BUILD_DATE=`date -u '+%Y%m%d'`" >> $GITHUB_ENV
           echo "GIT_REV=`git rev-parse --short HEAD`" >> $GITHUB_ENV
-          echo "QTDIR=${{ github.workspace }}/qt/Qt/${{ env.QT_VERSION }}/macos" >> $GITHUB_ENV
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            echo "QTDIR=${{ github.workspace }}/qt/Qt/${{ env.QT_VERSION }}/macos_arm64" >> $GITHUB_ENV
+          else
+            echo "QTDIR=${{ github.workspace }}/qt/Qt/${{ env.QT_VERSION }}/macos" >> $GITHUB_ENV
+          fi
           echo "NPROC=`sysctl -n hw.ncpu`" >> $GITHUB_ENV
 
       - name: Set v4 ENV variables
@@ -522,7 +538,7 @@ jobs:
           version: ${{ env.QT_VERSION }}
           dir: "${{ github.workspace }}/qt/"
           target: 'desktop'
-          arch: 'clang_64'
+          arch: '${{ matrix.qt_arch }}'
           modules: 'qt3d qtimageformats qtmultimedia qtserialport qtwebsockets'
 
       - name: Import macOS signing certificate
@@ -546,13 +562,13 @@ jobs:
         shell: bash
         if: ${{ matrix.task == 'build-v4' }}
         run: |-
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="${{ env.QTDIR }}/lib/cmake" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="${{ env.QTDIR }}/lib/cmake" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
       - name: Configure v5 build
         shell: bash
         if: ${{ matrix.task == 'build-v5' }}
         run: |-
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="${{ env.QTDIR }}/lib/cmake" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -Dqmlui=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="${{ env.QTDIR }}/lib/cmake" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -Dqmlui=ON -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
       - name: Build
         shell: bash
@@ -596,6 +612,11 @@ jobs:
           platforms/macos/fix_dylib_deps.sh ~/QLC+.app/Contents/MacOS/qlcplus5
           ${{ env.QTDIR }}/bin/macdeployqt ~/QLC+.app -qmldir=qmlui/qml
 
+      - name: Ad-hoc codesign
+        shell: bash
+        run: |
+          codesign --force --deep --sign - ~/QLC+.app
+          echo "codesign done"
       - name: Create DMG
         # Use retry loop to work around a race condition on macOS causing
         # 'Resource busy' errors with 'hdiutil'. See
@@ -616,7 +637,7 @@ jobs:
             --icon-size 64 \
             --icon "QLC+" 0 150 \
             --app-drop-link 200 150 \
-            $OUTDIR/QLC+_${{ matrix.task }}.dmg \
+            $OUTDIR/QLC+_${{ matrix.task }}_${{ matrix.arch }}.dmg \
             ~/QLC+.app
 
       - name: Notarize and staple DMG
@@ -636,5 +657,5 @@ jobs:
       - name: Store DMG artifact
         uses: actions/upload-artifact@v7
         with:
-          name: QLC+-${{env.APPVERSION}}-${{env.BUILD_DATE}}-${{env.GIT_REV}}.dmg
-          path: QLC+_${{ matrix.task }}.dmg
+          name: QLC+-${{env.APPVERSION}}-${{env.BUILD_DATE}}-${{env.GIT_REV}}-${{matrix.arch}}.dmg
+          path: QLC+_${{ matrix.task }}_${{ matrix.arch }}.dmg
