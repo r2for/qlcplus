@@ -463,15 +463,15 @@ jobs:
           - task: build-v4
             arch: x86_64
             qt_arch: clang_64
-            runs_on: macos-15
+            runs_on: macos-15-intel
           - task: build-v5
             arch: x86_64
             qt_arch: clang_64
-            runs_on: macos-15
+            runs_on: macos-15-intel
           - task: build-v5
             arch: arm64
-            qt_arch: clang_64_arm64
-            runs_on: macos-15-arm64
+            qt_arch: clang_64
+            runs_on: macos-15
     env:
       CI_REPO_SLUG: ${{ github.repository }}
       CI_BRANCH: ${{ github.head_ref }}
@@ -497,11 +497,7 @@ jobs:
         run: |
           echo "BUILD_DATE=`date -u '+%Y%m%d'`" >> $GITHUB_ENV
           echo "GIT_REV=`git rev-parse --short HEAD`" >> $GITHUB_ENV
-          if [ "${{ matrix.arch }}" = "arm64" ]; then
-            echo "QTDIR=${{ github.workspace }}/qt/Qt/${{ env.QT_VERSION }}/macos_arm64" >> $GITHUB_ENV
-          else
-            echo "QTDIR=${{ github.workspace }}/qt/Qt/${{ env.QT_VERSION }}/macos" >> $GITHUB_ENV
-          fi
+          echo "QTDIR=${{ github.workspace }}/qt/Qt/${{ env.QT_VERSION }}/macos" >> $GITHUB_ENV
           echo "NPROC=`sysctl -n hw.ncpu`" >> $GITHUB_ENV
 
       - name: Set v4 ENV variables
